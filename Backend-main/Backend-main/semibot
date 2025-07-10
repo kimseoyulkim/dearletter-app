@@ -1,0 +1,91 @@
+
+import streamlit as st
+import random
+
+st.set_page_config(page_title="문학 챗봇 웹앱", page_icon="📚", layout="centered")
+
+if "page" not in st.session_state:
+    st.session_state.page = "home"
+if "character" not in st.session_state:
+    st.session_state.character = None
+if "points" not in st.session_state:
+    st.session_state.points = 0
+
+characters = {
+    "햄릿": {
+        "desc": "덴마크의 왕자, 철학적 질문을 던지는 인물.",
+        "quote": "To be, or not to be, that is the question.",
+        "books": ["셰익스피어 4대 비극", "죄와 벌"]
+    },
+    "엠마": {
+        "desc": "사랑과 자아를 찾아가는 섬세한 여성.",
+        "quote": "자신을 아는 것이 진정한 성장의 시작이야.",
+        "books": ["엠마", "오만과 편견"]
+    },
+    "홍길동": {
+        "desc": "불의를 참지 못하는 조선의 의적.",
+        "quote": "나는 이 나라의 백성이 아니란 말인가!",
+        "books": ["홍길동전", "춘향전"]
+    }
+}
+
+def navigate(page):
+    st.session_state.page = page
+
+def page_home():
+    st.title("📚 문학 캐릭터 챗봇")
+    st.markdown("고전 문학 인물과 대화하며 독서를 즐겨보세요!")
+    st.image("https://images.unsplash.com/photo-1512820790803-83ca734da794", use_column_width=True)
+    st.button("시작하기", on_click=lambda: navigate("test"))
+
+def page_test():
+    st.header("📖 독서 성향 테스트")
+    genre = st.radio("Q1. 어떤 이야기에 더 끌리나요?", ["운명과 철학", "사랑과 자아", "정의와 모험"])
+    if st.button("결과 보기"):
+        if genre == "운명과 철학":
+            st.session_state.character = "햄릿"
+        elif genre == "사랑과 자아":
+            st.session_state.character = "엠마"
+        else:
+            st.session_state.character = "홍길동"
+        navigate("character")
+
+def page_character():
+    char = st.session_state.character
+    st.subheader(f"🎭 당신의 캐릭터는: {char}")
+    st.markdown(f"**설명**: {characters[char]['desc']}")
+    st.markdown(f"**추천 도서**: {', '.join(characters[char]['books'])}")
+    st.button("챗봇과 대화하기", on_click=lambda: navigate("chat"))
+
+def page_chat():
+    char = st.session_state.character
+    st.header(f"🤖 {char}와의 대화")
+    user_input = st.text_input("말을 걸어보세요:")
+    if user_input:
+        st.markdown(f"**나**: {user_input}")
+        response = characters[char]["quote"]
+        st.markdown(f"**{char}**: {response}")
+        if any(keyword in user_input for keyword in ["비유", "상징", "핵심"]):
+            st.success("📘 문해력 미션 성공! +10 포인트")
+            st.session_state.points += 10
+    st.button("마이페이지 보기", on_click=lambda: navigate("mypage"))
+
+def page_mypage():
+    char = st.session_state.character
+    st.header("📊 마이페이지")
+    st.metric("포인트", st.session_state.points)
+    st.markdown(f"**추천 도서**: {', '.join(characters[char]['books'])}")
+    st.button("처음으로 돌아가기", on_click=lambda: navigate("home"))
+
+page_dict = {
+    "home": page_home,
+    "test": page_test,
+    "character": page_character,
+    "chat": page_chat,
+    "mypage": page_mypage
+}
+
+page_dict[st.session_state.page]()
+
+
+
